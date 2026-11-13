@@ -9,7 +9,7 @@
       "name": "manual-qa-checklists",
       "source": "./",
       "description": "Writes click-by-click manual QA checklists for a PR, feature or release: exact on-screen labels, Copy buttons for everything the tester types, clean-up steps, independent review and a read-only check after the QA.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": { "name": "Laís Nametala" },
       "license": "MIT",
       "homepage": "https://github.com/lalanametala/manual-qa-checklists",

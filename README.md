@@ -51,9 +51,18 @@ skills/writing-manual-qa-checklists/
   example-spec.json         a small complete example
   scripts/render-checklist.mjs
   scripts/checklist-template.html
+test/render-checklist.test.mjs
 ```
 
 To render a spec yourself: `node skills/writing-manual-qa-checklists/scripts/render-checklist.mjs spec.json index.html`.
+
+## Develop
+
+The renderer's tests use Node's built-in test runner, with nothing to install:
+
+```
+node --test test/render-checklist.test.mjs
+```
 
 ## License
 

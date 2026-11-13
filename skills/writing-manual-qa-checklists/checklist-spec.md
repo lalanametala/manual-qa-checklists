@@ -4,28 +4,30 @@ The page is rendered from a JSON spec, so every checklist has the same layout: t
 
 ## Render and serve
 
+Run from the folder where you keep the checklist. `<skill folder>` is the folder that holds this file:
+
 ```bash
-node scripts/render-checklist.mjs spec.json qa/index.html
+node <skill folder>/scripts/render-checklist.mjs spec.json qa/index.html
 python3 -m http.server 4410 --bind 127.0.0.1 --directory qa
 ```
 
-Give the tester `http://localhost:4410/index.html?v=1`. Change `?v=` each time you re-render, so the browser can't show an old copy. Ticks survive a change of `?v=`, because localStorage is kept per origin. Opening the file directly (`file://`) also works. Node 18 or later; no dependencies.
+Give the tester `http://localhost:4410/index.html?v=1`. Change `?v=` each time you re-render, so the browser can't show an old copy. Ticks survive a change of `?v=`, because localStorage is kept per origin. Opening the file directly (`file://`) also works. Node 18 or later; no dependencies. The renderer creates the output folder if it's missing.
 
-The renderer refuses duplicate step ids. Copy buttons copy exactly the value shown, with no trailing newline.
+The renderer checks the spec before it writes anything. A problem stops it with one line naming the field, for example `Invalid spec: step 1.2 paste: times must be a positive whole number`. It also refuses duplicate step ids and duplicate paste ids; pastes and starting values share one set of ids. Copy buttons copy exactly the value shown, with no trailing newline. The one exception: a carriage return becomes a plain line break.
 
 ## Top-level fields
 
-| Field | What it is |
-|---|---|
-| `title` | Page title and heading, two to four words |
-| `eyebrow` | Small line above the title: PR, environment, account type |
-| `lede` | One or two sentences: what is checked, the parts and how long they take |
-| `storageKey` | Unique per checklist, for example `"pr-1234-staging-qa"` |
-| `resultsTitle` | First line of **Copy results** |
-| `legend`, `legendText` | Optional. Chips to explain, for example `["optional", "claude"]` and `{"optional": "skip if short on time"}` |
-| `notesPlaceholder` | Hint in the notes box |
-| `cards` | Setup cards: before you start, starting values, known behaviours, not covered |
-| `parts` | `[{ "title", "intro", "sections": [{ "title", "intro", "steps": [...] }] }]` |
+| Field | Required | What it is |
+|---|---|---|
+| `title` | yes | Page title and heading, two to four words |
+| `eyebrow` | yes | Small line above the title: PR, environment, account type |
+| `lede` | yes | One or two sentences: what is checked, the parts and how long they take |
+| `storageKey` | yes | Unique per checklist, for example `"pr-1234-staging-qa"` |
+| `resultsTitle` | yes | First line of **Copy results** |
+| `notesPlaceholder` | yes | Hint in the notes box |
+| `cards` | yes, may be empty | Setup cards: before you start, starting values, known behaviours, not covered |
+| `parts` | yes, at least one | `[{ "title", "intro", "sections": [{ "title", "intro", "steps": [...] }] }]` |
+| `legend`, `legendText` | no | Chips to explain, for example `["optional", "claude"]` and `{"optional": "skip if short on time"}`. Each kind in `legend` needs its text |
 
 ## A step
 
@@ -45,8 +47,9 @@ The renderer refuses duplicate step ids. Copy buttons copy exactly the value sho
 - `chip` is optional: `new`, `same` (unchanged wording), `optional` or `claude` (a check the assistant runs).
 - `expectLabel` is optional and replaces "Expect:" (for example "Then:").
 - An action is either a string, or an object with `text` and either `paste` or `pastes` (a list).
-- A paste is either `{ "id", "value" }` or `{ "repeat", "times", "preview" }`. The second copies a generated string, for example 6,000 characters to test a length limit. `preview` is what the page shows.
-- Paste `id`s must be unique on the page.
+- A step needs `id` (a string, unique on the page), `title`, `actions` and `expect`.
+- A paste is either `{ "id", "value" }` or `{ "repeat", "times", "preview" }`. The second copies a generated string, for example 6,000 characters to test a length limit. `times` is a positive whole number, and `preview` is what the page shows.
+- Paste `id`s must be unique on the page, starting values' ids included.
 
 ## Card blocks
 
@@ -59,7 +62,7 @@ The renderer refuses duplicate step ids. Copy buttons copy exactly the value sho
 | `[[Save changes]]` | An on-screen label, boxed. Write it exactly as displayed, capitals included |
 | `{{Cmd}}` | A key |
 | `**Save 2 answers?**` | Bold, for dialog titles |
-| `@@https://example.com/page\|link text@@` | A link that opens in a new tab |
+| `@@https://example.com/page\|link text@@` | A link that opens in a new tab. Only http and https: any other address shows as plain text |
 
 Everything else is escaped, so `<script>` in a paste value shows as text.
 
